@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Music Playlist</title>
+  <style>
+    :root{--teal:#028090;--sea:#00A896;--mint:#02C39A;--dark:#0B3C43;--ink:#1F2A2E;--gray:#5B6E72;--pale:#EDF7F6;--line:#DDE9E8;--red:#B0533F;--redbg:#FBEFE8}
+    *{box-sizing:border-box}body{margin:0;background:#F7FAFA;color:var(--ink);font:15px Tahoma,"Noto Sans Thai",sans-serif}
+    header{background:var(--dark);color:white;padding:20px max(22px,calc((100% - 1100px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    header h1{font-size:23px;margin:0}header p{margin:5px 0 0;color:#9DD9CF;font-size:13px}
+    nav{background:white;border-bottom:1px solid var(--line);padding:10px max(22px,calc((100% - 1100px)/2));display:flex;gap:8px;flex-wrap:wrap}
+    nav a{color:var(--dark);text-decoration:none;padding:7px 11px;border-radius:7px;font-size:14px}nav a.active,nav a:hover{background:var(--pale);color:var(--teal)}
+    main{max-width:1100px;margin:24px auto;padding:0 20px 45px}.intro{margin-bottom:18px}.intro h2{font-size:20px;margin:0 0 5px}.sub{color:var(--gray);font-size:14px;margin:0}
+    .layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.9fr);gap:16px;align-items:start}.card{background:white;border:1px solid var(--line);border-radius:12px;padding:17px;margin-bottom:16px;box-shadow:0 3px 12px #0b3c4308}
+    .card h3{font-size:16px;margin:0 0 13px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px}.stat{background:var(--pale);border-radius:9px;padding:12px}.stat span{display:block;color:var(--gray);font-size:12px}.stat strong{display:block;font-size:21px;color:var(--dark);margin-top:3px;overflow-wrap:anywhere}
+    .now{background:var(--dark);color:white;border-radius:10px;padding:18px;margin-bottom:14px}.now small{color:#9DD9CF}.now strong{display:block;font-size:20px;margin-top:5px;overflow-wrap:anywhere}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:8px;background:var(--teal);color:white;padding:9px 13px;font:inherit;cursor:pointer}.btn:hover{background:#026d7a}.btn.secondary{background:#E7F2F1;color:var(--dark)}.btn.danger{background:#A94C3B}.btn:disabled{opacity:.5;cursor:not-allowed}
+    label{display:block;font-size:13px;color:var(--gray);margin:10px 0 5px}input{width:100%;padding:10px;border:1px solid #C9DEDC;border-radius:8px;font:inherit;outline-color:var(--teal)}.formrow{display:flex;gap:8px}.formrow input{flex:1;min-width:0}.formrow button{white-space:nowrap}
+    .song-list{list-style:none;padding:0;margin:0}.song-list li{display:flex;align-items:center;gap:10px;padding:10px 9px;border-bottom:1px solid var(--line)}.song-list li:last-child{border-bottom:0}.song-no{color:var(--gray);width:24px;font-size:13px}.song-name{flex:1;overflow-wrap:anywhere}.song-list li.current{background:#E5F5F1;border-radius:8px;color:var(--dark);font-weight:bold}.tag{font-size:11px;background:var(--mint);color:#073d34;border-radius:20px;padding:3px 8px}.empty{color:var(--gray);text-align:center;padding:24px 8px;font-size:14px}
+    .message{padding:10px 12px;border-radius:8px;margin:0 0 15px;white-space:pre-wrap;font-size:14px;background:#E3F6EF;color:#0B5E45}.message.error{background:var(--redbg);color:var(--red)}.hint{font-size:12px;color:var(--gray);margin-top:8px;line-height:1.5}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px}.section-title h3{margin-bottom:0}
+    @media(max-width:760px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}header{padding:18px 20px}nav{padding:9px 15px}main{margin:18px auto;padding:0 14px 35px}}
+  </style>
+</head>
+<body>
+<header>
+  <div><h1>♫ Music Playlist</h1><p>Circular Doubly Linked List · Stack History</p></div>
+  <span style="font-size:13px;color:#9DD9CF">Python Backend · Flask</span>
+</header>
+<nav><a class="active" href="#playlist">Playlist</a><a href="#manage">จัดการเพลง</a><a href="#history">Playback</a></nav>
+<main>
+  <div class="intro"><h2>My Music Player</h2><p class="sub">จัดการรายการเพลงและควบคุมการเล่นผ่านหน้าเว็บ</p></div>
+  <div id="message" class="message" hidden></div>
+  <div class="layout">
+    <div>
+      <section class="card" id="playlist">
+        <div class="stats">
+          <div class="stat"><span>เพลงทั้งหมด</span><strong id="size">0</strong></div>
+          <div class="stat"><span>เพลงปัจจุบัน</span><strong id="current-short">—</strong></div>
+          <div class="stat"><span>History</span><strong id="history-count">0</strong></div>
+        </div>
+        <div class="now"><small>NOW PLAYING</small><strong id="current-title">ยังไม่มีเพลง</strong></div>
+        <div class="controls">
+          <button class="btn secondary" onclick="action('previous')">⏮ Previous</button>
+          <button class="btn" onclick="action('play')">▶ Play</button>
+          <button class="btn secondary" onclick="action('next')">Next ⏭</button>
+          <button class="btn secondary" onclick="action('history-back')">↶ History Back</button>
+        </div>
+      </section>
+      <section class="card">
+        <div class="section-title"><h3>Playlist</h3><span class="sub">เรียงจากเพลงแรก</span></div>
+        <ul class="song-list" id="song-list"><li class="empty">Playlist is empty</li></ul>
+      </section>
+      <section class="card">
+        <div class="section-title"><h3>Reverse Playlist</h3><span class="sub">เริ่มจากเพลงสุดท้าย</span></div>
+        <ul class="song-list" id="reverse-list"><li class="empty">ยังไม่มีเพลง</li></ul>
+      </section>
+    </div>
+    <div>
+      <section class="card" id="manage">
+        <h3>＋ Add Song</h3>
+        <form class="formrow" onsubmit="submitTitle(event,'add','add-title')"><input id="add-title" placeholder="ชื่อเพลงที่ต้องการเพิ่ม" autocomplete="off"><button class="btn">Add</button></form>
+        <p class="hint">เพิ่มเพลงต่อท้าย Playlist</p>
+      </section>
+      <section class="card">
+        <h3>↳ Insert After Current</h3>
+        <form class="formrow" onsubmit="submitTitle(event,'insert','insert-title')"><input id="insert-title" placeholder="ชื่อเพลงที่ต้องการแทรก" autocomplete="off"><button class="btn">Insert</button></form>
+        <p class="hint">แทรกหลังเพลงปัจจุบัน โดยตำแหน่งเพลงปัจจุบันไม่เปลี่ยน</p>
+      </section>
+      <section class="card">
+        <h3>− Remove Song</h3>
+        <form class="formrow" onsubmit="submitTitle(event,'remove','remove-title')"><input id="remove-title" placeholder="ชื่อเพลงที่ต้องการลบ" autocomplete="off"><button class="btn danger">Remove</button></form>
+      </section>
+      <section class="card">
+        <h3>Remove Current Song</h3>
+        <button class="btn danger" style="width:100%" onclick="action('remove-current')">ลบเพลงที่กำลังเล่น</button>
+      </section>
+      <section class="card" id="history">
+        <h3>Playlist Settings</h3>
+        <button class="btn secondary" style="width:100%" onclick="clearPlaylist()">Clear Playlist</button>
+        <p class="hint">ลบเพลงทั้งหมดและเริ่ม Playlist ใหม่</p>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+  async function api(path, data={}) {
+    const res = await fetch('/api/' + path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+    const result = await res.json();
+    showMessage(result.message || (result.ok ? 'สำเร็จ' : 'เกิดข้อผิดพลาด'), !result.ok);
+    if (result.state) render(result.state);
+    return result;
+  }
+  async function loadState(){
+    try { const res=await fetch('/api/state'); render(await res.json()); }
+    catch(e){ showMessage('เชื่อมต่อ Backend ไม่สำเร็จ กรุณาตรวจสอบว่า Flask Server ทำงานอยู่',true); }
+  }
+  function showMessage(text,isError=false){const box=document.getElementById('message');box.textContent=text;box.className='message'+(isError?' error':'');box.hidden=false;}
+  function makeList(targetId, songs, current, reverse=false){
+    const ul=document.getElementById(targetId);ul.innerHTML='';
+    if(!songs.length){ul.innerHTML='<li class="empty">Playlist is empty</li>';return;}
+    songs.forEach((title,index)=>{
+      const li=document.createElement('li');if(title===current)li.className='current';
+      const no=document.createElement('span');no.className='song-no';no.textContent=(index+1)+'.';
+      const name=document.createElement('span');name.className='song-name';name.textContent=title;
+      li.append(no,name);if(title===current){const tag=document.createElement('span');tag.className='tag';tag.textContent='CURRENT';li.append(tag);}ul.append(li);
+    });
+  }
+  function render(state){
+    document.getElementById('size').textContent=state.size;
+    document.getElementById('current-title').textContent=state.current||'ยังไม่มีเพลง';
+    document.getElementById('current-short').textContent=state.current||'—';
+    document.getElementById('history-count').textContent=state.history_count;
+    makeList('song-list',state.songs,state.current);
+    makeList('reverse-list',state.reverse_songs,state.current,true);
+  }
+  async function action(name){await api(name);}
+  async function submitTitle(event,endpoint,inputId){event.preventDefault();const input=document.getElementById(inputId);const title=input.value.trim();if(!title){showMessage('กรุณาใส่ชื่อเพลง',true);return;}const result=await api(endpoint,{title});if(result.ok)input.value='';}
+  async function clearPlaylist(){if(confirm('ต้องการลบเพลงทั้งหมดใช่หรือไม่?'))await api('clear');}
+  loadState();
+</script>
+</body>
+</html>
